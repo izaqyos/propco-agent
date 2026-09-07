@@ -1,0 +1,173 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "propco-agent"
+version = "0.1.0"
+description = "LangGraph multi-agent assistant for real-estate asset management over a property ledger"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.12,<3.13"
+authors = [{ name = "Yosi Izaq" }]
+keywords = ["langgraph", "multi-agent", "llm", "real-estate", "streamlit"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Web Environment",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business :: Financial",
+]
+
+dependencies = [
+    "langgraph>=1.2,<2",
+    "langchain-core>=1.6,<2",
+    "langchain-ollama>=1.1,<2",
+    "langchain-anthropic>=1.7,<2",
+    "pydantic>=2.13,<3",
+    "pydantic-settings>=2.15,<3",
+    "pandas>=3.0,<4",
+    "pyarrow>=25,<26",
+    "rapidfuzz>=3.14,<4",
+    "structlog>=26,<27",
+    "streamlit>=1.63,<2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=9,<10",
+    "pytest-cov>=7,<8",
+    "pytest-xdist>=3.8,<4",
+    "pytest-playwright>=0.9,<1",
+    "hypothesis>=6.160,<7",
+    "ruff>=0.16,<1",
+    "mypy>=2.3,<3",
+    "pandas-stubs>=3.0,<4",
+    "pre-commit>=4.6,<5",
+    "pip-licenses>=5.5,<6",
+]
+
+[project.urls]
+Repository = "https://github.com/izaqyos/propco-agent"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/propco_agent"]
+
+# ---------------------------------------------------------------------------
+# pytest
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = [
+    "-ra",
+    "--tb=short",
+    "--strict-markers",
+    "--strict-config",
+    "-m", "not browser and not live",
+]
+markers = [
+    "unit: pure functions, no I/O",
+    "component: graph nodes / edges with fake LLM",
+    "api: AssetManagerService contract",
+    "e2e: Streamlit AppTest flows",
+    "browser: Playwright against a live Streamlit server (opt-in)",
+    "live: hits a real LLM (Ollama) — opt-in eval suite",
+]
+filterwarnings = [
+    "error::DeprecationWarning:propco_agent.*",
+]
+
+# ---------------------------------------------------------------------------
+# coverage
+# ---------------------------------------------------------------------------
+[tool.coverage.run]
+source = ["propco_agent", "app"]
+branch = true
+omit = [
+    "*/tests/*",
+    "*/__main__.py",
+]
+
+[tool.coverage.report]
+fail_under = 95
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+    "\\.\\.\\.",
+]
+
+# ---------------------------------------------------------------------------
+# mypy
+# ---------------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_return_any = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unused_configs = true
+no_implicit_optional = true
+show_error_codes = true
+plugins = ["pydantic.mypy"]
+mypy_path = "src"
+packages = ["propco_agent", "app"]
+
+[[tool.mypy.overrides]]
+module = ["streamlit.*", "rapidfuzz.*", "pyarrow.*", "langchain_ollama.*", "langchain_anthropic.*"]
+ignore_missing_imports = true
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
+
+# ---------------------------------------------------------------------------
+# ruff
+# ---------------------------------------------------------------------------
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["src", "app", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W",   # pycodestyle
+    "F",        # pyflakes
+    "I",        # isort
+    "B",        # bugbear
+    "C4",       # comprehensions
+    "UP",       # pyupgrade
+    "ARG",      # unused arguments
+    "SIM",      # simplify
+    "PT",       # pytest style
+    "RUF",      # ruff-specific
+    "N",        # naming
+    "D1",       # missing docstrings (public API only via per-file-ignores below)
+]
+ignore = [
+    "E501",   # line length handled by formatter
+    "B008",   # function calls in defaults (pydantic Field)
+    "D107",   # __init__ docstrings
+    "RUF012", # mutable class attrs (pydantic/TypedDict patterns)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["ARG001", "D1", "PT011"]
+"app/*" = ["D1"]
+"scripts/*" = ["D1"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["propco_agent", "app"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.format]
+quote-style = "double"

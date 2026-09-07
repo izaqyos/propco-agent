@@ -1,0 +1,65 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PROPCO_LLM_PROVIDER: fake
+  UV_FROZEN: "1"
+
+jobs:
+  quality:
+    name: lint · type · test · coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv python install 3.12
+      - run: uv sync --all-extras
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy
+      - run: uv run pytest --cov --cov-report=term-missing --cov-report=xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-xml
+          path: coverage.xml
+
+  licenses:
+    name: license allowlist
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv python install 3.12
+      - run: uv sync --all-extras
+      - run: make licenses
+
+  browser:
+    name: playwright smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: quality
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv python install 3.12
+      - run: uv sync --all-extras
+      - run: uv run playwright install --with-deps chromium
+      - run: uv run pytest -m browser --no-cov -q
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-artifacts
+          path: test-results/
