@@ -32,6 +32,8 @@ ALLOWED: frozenset[str] = frozenset(
         "isc license",
         "isc license (iscl)",
         "mpl-2.0",
+        "mpl 2.0",
+        "mozilla public license 2.0",
         "mozilla public license 2.0 (mpl 2.0)",
         "psf-2.0",
         "python software foundation license",
