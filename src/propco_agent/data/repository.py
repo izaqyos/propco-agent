@@ -51,6 +51,11 @@ class LedgerRepository(Protocol):
         """Sorted ledger categories."""
         ...
 
+    @property
+    def groups(self) -> list[str]:
+        """Sorted ledger groups."""
+        ...
+
 
 class _FrameRepository:
     """Shared metadata/caching over a validated frame supplied by a subclass."""
@@ -94,6 +99,11 @@ class _FrameRepository:
     def categories(self) -> list[str]:
         """Sorted ledger categories."""
         return self._sorted_unique("ledger_category")
+
+    @property
+    def groups(self) -> list[str]:
+        """Sorted ledger groups."""
+        return self._sorted_unique("ledger_group")
 
     def _sorted_unique(self, column: str) -> list[str]:
         return sorted(str(v) for v in self._raw[column].dropna().unique())

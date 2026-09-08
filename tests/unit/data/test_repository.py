@@ -49,6 +49,15 @@ class TestParquetRepository:
     def test_categories_count(self, repo: ParquetLedgerRepository) -> None:
         assert len(repo.categories) == 29
 
+    def test_groups(self, repo: ParquetLedgerRepository) -> None:
+        assert repo.groups == [
+            "general_expenses",
+            "management_fees",
+            "rental_income",
+            "sales_discounts",
+            "taxes_and_insurances",
+        ]
+
     def test_frame_is_loaded_once(self, repo: ParquetLedgerRepository) -> None:
         assert repo.frame() is repo.frame()
 

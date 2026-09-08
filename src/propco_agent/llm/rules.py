@@ -135,6 +135,11 @@ def _single_intent(text: str) -> Intent:
     return Intent.CLARIFY
 
 
+def parse_periods(text: str) -> list[PeriodSpec]:
+    """Period specs found in ``text`` (relative phrases first, then absolute forms)."""
+    return _periods(text.lower())[0]
+
+
 def rule_extract(text: str) -> ExtractedEntities:
     """Pull entities out of ``text`` with regular expressions."""
     lowered = text.lower()
