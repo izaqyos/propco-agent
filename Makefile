@@ -38,8 +38,8 @@ eval: ## live eval vs local Ollama (skips if unreachable)
 run: ## start the Streamlit UI
 	$(RUN) streamlit run app/streamlit_app.py
 
-licenses: ## fail on non-permissive licenses
-	$(RUN) pip-licenses --from=mixed --allow-only="MIT License;MIT;BSD License;BSD-3-Clause;BSD-2-Clause;Apache Software License;Apache-2.0;Apache 2.0;Python Software Foundation License;MIT AND Python-2.0;ISC License (ISCL);ISC;Mozilla Public License 2.0 (MPL 2.0);The Unlicense (Unlicense);Public Domain"
+licenses: ## fail on non-permissive licences in runtime deps (SPDX-aware, dev tools excluded)
+	$(RUN) python scripts/check_licenses.py
 
 docker-build: ## build image
 	docker build -t propco-agent:local .
