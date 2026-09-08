@@ -13,27 +13,25 @@ from propco_agent.analytics.pnl import compute_pnl
 from propco_agent.analytics.tenants import top_tenants
 from propco_agent.domain.models import DataPolicy, Intent
 from propco_agent.graph.deps import Deps
-from propco_agent.graph.state import AgentState, ResolvedQuery, timed
+from propco_agent.graph.state import AgentState, Node, NodeUpdate, ResolvedQuery, timed
 
 DEFAULT_TOP_N = 5
 
 ANALYST_BY_INTENT: dict[Intent, str] = {
-    Intent.PNL: "analyst:pnl",
-    Intent.PERIOD_COMPARE: "analyst:compare_periods",
-    Intent.PRICE_COMPARE: "analyst:compare_properties",
-    Intent.TENANT_ANALYSIS: "analyst:tenants",
-    Intent.ASSET_DETAILS: "analyst:asset_details",
-    Intent.ANOMALY_CHECK: "analyst:anomalies",
+    Intent.PNL: "analyst_pnl",
+    Intent.PERIOD_COMPARE: "analyst_compare_periods",
+    Intent.PRICE_COMPARE: "analyst_compare_properties",
+    Intent.TENANT_ANALYSIS: "analyst_tenants",
+    Intent.ASSET_DETAILS: "analyst_asset_details",
+    Intent.ANOMALY_CHECK: "analyst_anomalies",
 }
 
 Compute = Callable[[Deps, AgentState, ResolvedQuery, DataPolicy], BaseModel]
 
 
-def _make(
-    name: str, compute: Compute
-) -> Callable[[Deps], Callable[[AgentState], dict[str, object]]]:
-    def factory(deps: Deps) -> Callable[[AgentState], dict[str, object]]:
-        def node(state: AgentState) -> dict[str, object]:
+def _make(name: str, compute: Compute) -> Callable[[Deps], Node]:
+    def factory(deps: Deps) -> Node:
+        def node(state: AgentState) -> NodeUpdate:
             resolved = state["resolved"]
             assert resolved is not None  # routing guarantees this
             policy = state.get("policy", DataPolicy.RAW)
@@ -85,7 +83,7 @@ make_tenants = _make(ANALYST_BY_INTENT[Intent.TENANT_ANALYSIS], _tenants)
 make_asset_details = _make(ANALYST_BY_INTENT[Intent.ASSET_DETAILS], _details)
 make_anomalies = _make(ANALYST_BY_INTENT[Intent.ANOMALY_CHECK], _anomalies)
 
-FACTORIES: dict[str, Callable[[Deps], Callable[[AgentState], dict[str, object]]]] = {
+FACTORIES: dict[str, Callable[[Deps], Node]] = {
     ANALYST_BY_INTENT[Intent.PNL]: make_pnl,
     ANALYST_BY_INTENT[Intent.PERIOD_COMPARE]: make_compare_periods,
     ANALYST_BY_INTENT[Intent.PRICE_COMPARE]: make_compare_properties,

@@ -8,13 +8,13 @@ from __future__ import annotations
 
 import json
 import re
-from collections.abc import Callable, Iterable, Sequence
+from collections.abc import Iterable, Sequence
 
 from pydantic import BaseModel
 
 from propco_agent.graph.deps import Deps
 from propco_agent.graph.nodes.common import system_message, user_message
-from propco_agent.graph.state import AgentState, timed
+from propco_agent.graph.state import AgentState, Node, NodeUpdate, timed
 from propco_agent.graph.templates import allowed_numbers, render_answer
 from propco_agent.llm.factory import Role
 from propco_agent.llm.prompts import PromptName
@@ -46,12 +46,12 @@ def grounding_violations(text: str, allowed: Iterable[float]) -> list[float]:
     return violations
 
 
-def make_synthesizer(deps: Deps) -> Callable[[AgentState], dict[str, object]]:
+def make_synthesizer(deps: Deps) -> Node:
     """Build the synthesizer node."""
     model = deps.models[Role.SYNTH]
     currency = deps.settings.currency
 
-    def synthesizer(state: AgentState) -> dict[str, object]:
+    def synthesizer(state: AgentState) -> NodeUpdate:
         results = list(state.get("results", []))
         resolved = state.get("resolved")
         notes = list(resolved.notes) if resolved is not None else []
@@ -97,11 +97,11 @@ def make_synthesizer(deps: Deps) -> Callable[[AgentState], dict[str, object]]:
     return synthesizer
 
 
-def make_general(deps: Deps) -> Callable[[AgentState], dict[str, object]]:
+def make_general(deps: Deps) -> Node:
     """Build the general-knowledge node (no data access)."""
     model = deps.models[Role.GENERAL]
 
-    def general(state: AgentState) -> dict[str, object]:
+    def general(state: AgentState) -> NodeUpdate:
         with timed("general") as done:
             try:
                 text = str(
@@ -127,11 +127,11 @@ def make_general(deps: Deps) -> Callable[[AgentState], dict[str, object]]:
     return general
 
 
-def make_unsupported(deps: Deps) -> Callable[[AgentState], dict[str, object]]:
+def make_unsupported(deps: Deps) -> Node:
     """Build the node that explains the assistant's scope."""
     properties = ", ".join(deps.repo.properties)
 
-    def unsupported(_: AgentState) -> dict[str, object]:
+    def unsupported(state: AgentState) -> NodeUpdate:  # noqa: ARG001
         with timed("unsupported") as done:
             answer = (
                 "This assistant answers questions about the PropCo ledger: P&L, revenue and expenses "

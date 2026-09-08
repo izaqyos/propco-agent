@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
-
 from propco_agent.domain.errors import LLMUnavailableError
 from propco_agent.domain.models import Intent
 from propco_agent.graph.deps import Deps
 from propco_agent.graph.nodes.common import system_message, user_message
-from propco_agent.graph.state import AgentState, timed
+from propco_agent.graph.state import AgentState, Node, NodeUpdate, timed
 from propco_agent.llm.factory import Role
 from propco_agent.llm.prompts import PromptName
 from propco_agent.llm.rules import CLARIFICATION, rule_route
@@ -18,14 +16,14 @@ from propco_agent.llm.structured import invoke_structured
 LOW_CONFIDENCE = 0.4
 
 
-def make_router(deps: Deps) -> Callable[[AgentState], dict[str, object]]:
+def make_router(deps: Deps) -> Node:
     """Build the router node."""
     model = deps.models[Role.ROUTER]
 
-    def router(state: AgentState) -> dict[str, object]:
+    def router(state: AgentState) -> NodeUpdate:
         question = state["question"]
         with timed("router") as done:
-            out: dict[str, object] = {}
+            out: NodeUpdate = {}
             try:
                 route = invoke_structured(
                     model,
@@ -48,7 +46,7 @@ def make_router(deps: Deps) -> Callable[[AgentState], dict[str, object]]:
 
 def post_process(route: RouteDecision, question: str) -> RouteDecision:
     """Apply deterministic guard-rails to the model's decision."""
-    updates: dict[str, object] = {}
+    updates: NodeUpdate = {}
     if len(route.sub_questions) == 1:
         updates["sub_questions"] = []
     elif not route.is_compound:

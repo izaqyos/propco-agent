@@ -46,6 +46,28 @@ def test_scripted_exception_is_raised() -> None:
         model.invoke([HumanMessage("q")])
 
 
+class TestKeyedResponses:
+    """Responses chosen by a substring of the latest message — deterministic under parallel branches."""
+
+    def test_keyed_response_wins_over_queue(self) -> None:
+        model = ScriptedFakeChatModel(
+            responses=["queued"], keyed={"tenants": "tenant answer", "unusual": "anomaly answer"}
+        )
+        assert model.invoke([HumanMessage("who are my top tenants?")]).content == "tenant answer"
+        assert model.invoke([HumanMessage("anything unusual?")]).content == "anomaly answer"
+        assert model.invoke([HumanMessage("something else")]).content == "queued"
+
+    def test_keyed_structured_output(self) -> None:
+        model = ScriptedFakeChatModel(keyed={"score": Answer(text="k", score=9)})
+        out = model.with_structured_output(Answer).invoke([HumanMessage("what score?")])
+        assert out == Answer(text="k", score=9)
+
+    def test_keyed_responses_are_reusable(self) -> None:
+        model = ScriptedFakeChatModel(keyed={"hi": "hello"})
+        assert model.invoke([HumanMessage("hi")]).content == "hello"
+        assert model.invoke([HumanMessage("hi again")]).content == "hello"
+
+
 class TestStructuredOutput:
     def test_instance_is_returned_as_parsed(self) -> None:
         model = ScriptedFakeChatModel(responses=[Answer(text="a", score=1)])

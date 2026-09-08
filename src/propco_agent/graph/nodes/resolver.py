@@ -14,7 +14,7 @@ from rapidfuzz import fuzz, process
 from propco_agent.domain.errors import UnknownEntityError
 from propco_agent.domain.models import Intent, LedgerFilter, Period
 from propco_agent.graph.deps import Deps
-from propco_agent.graph.state import AgentState, ResolvedQuery, Unresolved, timed
+from propco_agent.graph.state import AgentState, Node, NodeUpdate, ResolvedQuery, Unresolved, timed
 from propco_agent.llm.schemas import ExtractedEntities
 from propco_agent.resolve.entities import resolve_property, resolve_tenant
 from propco_agent.resolve.metrics import SUPPORTED, Metric, describe_unsupported
@@ -37,10 +37,10 @@ class _UnresolvedError(Exception):
         self.unresolved = unresolved
 
 
-def make_resolver(deps: Deps) -> Callable[[AgentState], dict[str, object]]:
+def make_resolver(deps: Deps) -> Node:
     """Build the resolver node."""
 
-    def resolver(state: AgentState) -> dict[str, object]:
+    def resolver(state: AgentState) -> NodeUpdate:
         route = state["route"]
         extracted = state.get("extracted") or ExtractedEntities()
         notes: list[str] = []

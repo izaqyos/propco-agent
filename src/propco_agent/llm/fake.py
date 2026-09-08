@@ -28,6 +28,7 @@ class ScriptedFakeChatModel(BaseChatModel):
     """Replays ``responses`` in order and records every call in ``calls``."""
 
     responses: list[Any] = Field(default_factory=list)
+    keyed: dict[str, Any] = Field(default_factory=dict)  # substring of last message -> response
     calls: list[list[BaseMessage]] = Field(default_factory=list)
 
     @property
@@ -42,7 +43,7 @@ class ScriptedFakeChatModel(BaseChatModel):
         **kwargs: Any,
     ) -> ChatResult:
         self.calls.append(list(messages))
-        response = self._next()
+        response = self._next(messages)
         return ChatResult(
             generations=[ChatGeneration(message=AIMessage(content=_as_text(response)))]
         )
@@ -53,8 +54,9 @@ class ScriptedFakeChatModel(BaseChatModel):
         """Mimic LangChain's structured output contract on top of the script."""
 
         def run(messages: Any) -> Any:
-            self.calls.append(list(_as_messages(messages)))
-            response = self._next()
+            coerced = list(_as_messages(messages))
+            self.calls.append(coerced)
+            response = self._next(coerced)
             raw = _as_text(response)
             parsed: BaseModel | None = None
             error: Exception | None = None
@@ -77,13 +79,22 @@ class ScriptedFakeChatModel(BaseChatModel):
 
         return RunnableLambda(run)
 
-    def _next(self) -> Any:
+    def _next(self, messages: Sequence[BaseMessage] | None = None) -> Any:
+        """Keyed response (longest matching key wins, reusable) else the next queued one."""
+        if messages and self.keyed:
+            last = str(messages[-1].content)
+            for key in sorted(self.keyed, key=len, reverse=True):
+                if key in last:
+                    return _raise_or_return(self.keyed[key])
         if not self.responses:
             raise ScriptExhaustedError("no scripted responses left")
-        response = self.responses.pop(0)
-        if isinstance(response, BaseException):
-            raise response
-        return response
+        return _raise_or_return(self.responses.pop(0))
+
+
+def _raise_or_return(response: Any) -> Any:
+    if isinstance(response, BaseException):
+        raise response
+    return response
 
 
 def _as_text(response: Any) -> str:

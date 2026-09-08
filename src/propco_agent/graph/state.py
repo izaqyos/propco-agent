@@ -10,7 +10,7 @@ import operator
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from time import perf_counter
-from typing import Annotated, TypedDict
+from typing import Annotated, Any, Protocol, TypedDict
 
 from pydantic import BaseModel, Field
 
@@ -32,6 +32,17 @@ AnalysisResult = Annotated[
     | AnomalyReport,
     Field(discriminator="kind"),
 ]
+
+
+NodeUpdate = dict[str, Any]  # what a node returns: a partial state update
+
+
+class Node(Protocol):
+    """A graph node: state in, partial update out (LangGraph requires the parameter name)."""
+
+    def __call__(self, state: AgentState) -> NodeUpdate:
+        """Run the node."""
+        ...
 
 
 class TraceEvent(BaseModel):
@@ -89,7 +100,7 @@ class AgentState(TypedDict, total=False):
     answer: str
     clarification: str | None
     clarify_rounds: int
-    degraded: bool
+    degraded: Annotated[bool, operator.or_]  # parallel branches may each report degradation
     trace: Annotated[list[TraceEvent], operator.add]
     errors: Annotated[list[str], operator.add]
 

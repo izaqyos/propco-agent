@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Callable
 
 from propco_agent.graph.deps import Deps
-from propco_agent.graph.state import AgentState, GuardResult, timed
+from propco_agent.graph.state import AgentState, GuardResult, Node, NodeUpdate, timed
 
 _EXAMPLES = (
     "For example: 'total P&L for 2024', 'this quarter vs the same period last year', "
@@ -18,11 +17,11 @@ _CODE_START = re.compile(
 _MIN_PRINTABLE_RATIO = 0.7
 
 
-def make_guard(deps: Deps) -> Callable[[AgentState], dict[str, object]]:
+def make_guard(deps: Deps) -> Node:
     """Build the guard node."""
     max_chars = deps.settings.max_input_chars
 
-    def guard(state: AgentState) -> dict[str, object]:
+    def guard(state: AgentState) -> NodeUpdate:
         with timed("guard") as done:
             text = " ".join(state.get("question", "").split())
             rejection = _reject(text, max_chars)

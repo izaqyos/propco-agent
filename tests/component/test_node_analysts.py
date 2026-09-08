@@ -53,7 +53,7 @@ def test_pnl_node(deps: Deps) -> None:
     (result,) = out["results"]
     assert result.kind == "pnl"
     assert result.total == 1171521.55
-    assert out["trace"][0].node == "analyst:pnl"
+    assert out["trace"][0].node == "analyst_pnl"
 
 
 def test_pnl_node_respects_policy(deps: Deps) -> None:

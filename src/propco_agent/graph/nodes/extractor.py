@@ -6,12 +6,10 @@ re-parsed deterministically, and any field the model skipped is filled from keyw
 
 from __future__ import annotations
 
-from collections.abc import Callable
-
 from propco_agent.domain.errors import LLMUnavailableError
 from propco_agent.graph.deps import Deps
 from propco_agent.graph.nodes.common import system_message, user_message
-from propco_agent.graph.state import AgentState, timed
+from propco_agent.graph.state import AgentState, Node, NodeUpdate, timed
 from propco_agent.llm.factory import Role
 from propco_agent.llm.prompts import PromptName
 from propco_agent.llm.rules import parse_periods, rule_extract
@@ -20,14 +18,14 @@ from propco_agent.llm.structured import invoke_structured
 from propco_agent.resolve.periods import PeriodSpec
 
 
-def make_extractor(deps: Deps) -> Callable[[AgentState], dict[str, object]]:
+def make_extractor(deps: Deps) -> Node:
     """Build the extractor node."""
     model = deps.models[Role.EXTRACTOR]
 
-    def extractor(state: AgentState) -> dict[str, object]:
+    def extractor(state: AgentState) -> NodeUpdate:
         question = state["question"]
         with timed("extractor") as done:
-            out: dict[str, object] = {}
+            out: NodeUpdate = {}
             try:
                 from_llm = invoke_structured(
                     model,
