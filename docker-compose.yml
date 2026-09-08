@@ -1,0 +1,32 @@
+# Local stack: the app plus an Ollama sidecar for a fully offline run.
+#   docker compose up --build
+#   docker compose exec ollama ollama pull qwen3.5:9b   # first time only
+# For Gemini instead: set PROPCO_LLM_PROVIDER=gemini and GOOGLE_API_KEY in .env (never commit it).
+
+services:
+  app:
+    build: .
+    ports:
+      - "8501:8501"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      PROPCO_LLM_PROVIDER: ${PROPCO_LLM_PROVIDER:-ollama}
+      PROPCO_OLLAMA_BASE_URL: http://ollama:11434
+    depends_on:
+      ollama:
+        condition: service_started
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:latest
+    volumes:
+      - ollama:/root/.ollama
+    # not published on the host: only the app talks to it
+    expose:
+      - "11434"
+    restart: unless-stopped
+
+volumes:
+  ollama:

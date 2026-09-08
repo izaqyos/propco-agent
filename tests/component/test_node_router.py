@@ -79,6 +79,15 @@ def test_compound_detected_by_rules_when_llm_misses_it(
     assert out["route"].intent is Intent.TENANT_ANALYSIS
 
 
+def test_fan_out_is_capped(deps: Deps, fake_models: dict[Role, ScriptedFakeChatModel]) -> None:
+    fake_models[Role.ROUTER].responses.append(
+        RouteDecision(intent=Intent.PNL, confidence=0.9, sub_questions=[f"q{i}" for i in range(7)])
+    )
+    out = run(deps, "many things")
+    assert out["route"].sub_questions == ["q0", "q1", "q2", "q3"]
+    assert any("capped" in e for e in out["errors"])
+
+
 def test_single_sub_question_is_collapsed(
     deps: Deps, fake_models: dict[Role, ScriptedFakeChatModel]
 ) -> None:

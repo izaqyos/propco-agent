@@ -134,6 +134,34 @@ def test_repeated_question_is_served_from_cache(
     assert len(fake_models[Role.SYNTH].calls) == 2  # synthesis is not cached
 
 
+def test_each_turn_is_logged_with_thread_and_request_ids(
+    service: AssetManagerService,
+    fake_models: dict[Role, ScriptedFakeChatModel],
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    import json
+
+    from propco_agent.logging import configure_logging
+
+    configure_logging(json_output=True, level="INFO")
+    script_pnl(fake_models)
+    service.ask("P&L 2024", thread_id="log-1")
+    records = [
+        json.loads(line)
+        for line in capsys.readouterr().out.strip().splitlines()
+        if line.startswith("{")
+    ]
+    turn = [r for r in records if r["event"] == "turn"]
+    assert turn, records
+    assert turn[-1]["thread_id"] == "log-1"
+    assert len(turn[-1]["request_id"]) == 12
+    assert turn[-1]["intent"] == "pnl"
+    assert turn[-1]["needs_input"] is False
+    assert "analyst_pnl" in turn[-1]["nodes"]
+    # no prompt text or answer text leaks into logs
+    assert "1,171,521.55" not in json.dumps(records)
+
+
 def test_mermaid(service: AssetManagerService) -> None:
     assert "router" in service.mermaid()
 

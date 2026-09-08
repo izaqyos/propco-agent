@@ -90,19 +90,29 @@ def _record(result: AskResult) -> None:
 def _run_turn(service: AssetManagerService, text: str, policy: DataPolicy) -> None:
     st.session_state["messages"].append({"role": "user", "content": text})
     thread_id: str = st.session_state["thread_id"]
-    if st.session_state["pending"]:
-        result = service.resume(text, thread_id=thread_id)
-    else:
-        with st.status("Thinking…", expanded=False) as status:
-            final: AskResult | None = None
-            for event in service.stream(text, thread_id=thread_id, policy=policy):
-                if isinstance(event, TraceEvent):
-                    status.write(f"{event.node} · {event.ms:.0f} ms · {event.summary}")
-                else:
-                    final = event
-            status.update(label="Done", state="complete")
-        assert final is not None
-        result = final
+    try:
+        if st.session_state["pending"]:
+            result = service.resume(text, thread_id=thread_id)
+        else:
+            with st.status("Thinking…", expanded=False) as status:
+                final: AskResult | None = None
+                for event in service.stream(text, thread_id=thread_id, policy=policy):
+                    if isinstance(event, TraceEvent):
+                        status.write(f"{event.node} · {event.ms:.0f} ms · {event.summary}")
+                    else:
+                        final = event
+                status.update(label="Done", state="complete")
+            assert final is not None
+            result = final
+    except Exception as exc:  # pragma: no cover - last-resort guard so the chat never dies
+        result = AskResult(
+            thread_id=thread_id,
+            answer=f"Something went wrong while processing that ({type(exc).__name__}). "
+            "Please try again or rephrase.",
+            needs_input=False,
+            errors=[f"{type(exc).__name__}: {exc}"],
+            degraded=True,
+        )
     _record(result)
 
 

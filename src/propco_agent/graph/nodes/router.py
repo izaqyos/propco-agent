@@ -14,6 +14,7 @@ from propco_agent.llm.schemas import RouteDecision
 from propco_agent.llm.structured import invoke_structured
 
 LOW_CONFIDENCE = 0.4
+MAX_SUB_QUESTIONS = 4  # bounds fan-out cost and latency on compound requests
 
 
 def make_router(deps: Deps) -> Node:
@@ -37,7 +38,18 @@ def make_router(deps: Deps) -> Node:
                 summary = f"LLM unavailable, fallback rules: intent={route.intent.value}"
                 out["degraded"] = True
                 out["errors"] = [f"router: {exc}"]
-            out["route"] = post_process(route, question)
+            route = post_process(route, question)
+            if len(route.sub_questions) > MAX_SUB_QUESTIONS:
+                dropped = route.sub_questions[MAX_SUB_QUESTIONS:]
+                route = route.model_copy(
+                    update={"sub_questions": route.sub_questions[:MAX_SUB_QUESTIONS]}
+                )
+                out["errors"] = [
+                    *out.get("errors", []),
+                    f"compound request capped at {MAX_SUB_QUESTIONS} sub-questions; "
+                    f"not answered: {dropped}",
+                ]
+            out["route"] = route
             out["trace"] = [done(summary)]
             return out
 
