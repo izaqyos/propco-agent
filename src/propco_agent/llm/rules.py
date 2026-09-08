@@ -39,6 +39,11 @@ _DATASET_WORDS = re.compile(
     r"assets?|my|our|compare\w*|price\w*|quarter|year|month)\b"
 )
 _PROPERTY = re.compile(r"\b(?:building|bldg\.?|bld\.?)\s*(?:no\.?|#)?\s*(\d+)\b", re.IGNORECASE)
+# "123 Main St" — kept verbatim so the resolver can say precisely what it could not find
+_ADDRESS = re.compile(
+    r"\b\d{1,5}\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\s+"
+    r"(?:St|Street|Ave|Avenue|Rd|Road|Ln|Lane|Blvd|Boulevard|Dr|Drive|Way|Pl|Place|Ct|Court)\b\.?"
+)
 _TENANT_ID = re.compile(r"\btenant\s*(?:no\.?|#)?\s*(\d+)\b", re.IGNORECASE)
 _TOP_N = re.compile(r"\btop\s+(\d+)\b")
 _SPLIT_COMPOUND = re.compile(
@@ -143,7 +148,10 @@ def parse_periods(text: str) -> list[PeriodSpec]:
 def rule_extract(text: str) -> ExtractedEntities:
     """Pull entities out of ``text`` with regular expressions."""
     lowered = text.lower()
-    properties = _dedupe(f"Building {int(n)}" for n in _PROPERTY.findall(text))
+    properties = _dedupe(
+        [f"Building {int(n)}" for n in _PROPERTY.findall(text)]
+        + [m.rstrip(".") for m in _ADDRESS.findall(text)]
+    )
     tenants = _dedupe(f"Tenant {int(n)}" for n in _TENANT_ID.findall(text))
     periods, remainder = _periods(lowered)
     top = _TOP_N.search(lowered)

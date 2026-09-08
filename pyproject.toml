@@ -161,6 +161,7 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["ARG001", "D1", "PT011"]
 "src/propco_agent/llm/fake.py" = ["ARG002"]  # LangChain interface overrides carry unused params
+"app/streamlit_app.py" = ["E402"]  # sys.path bootstrap must precede the app imports
 "app/*" = ["D1"]
 "scripts/*" = ["D1"]
 

@@ -59,6 +59,11 @@ class TestRuleExtract:
         assert e.properties == ["Building 17", "Building 120"]
         assert e.tenants == ["Tenant 7"]
 
+    def test_street_addresses_are_kept_as_written(self) -> None:
+        e = rule_extract("What is the price of my asset at 123 Main St compared to 456 Oak Ave?")
+        assert e.properties == ["123 Main St", "456 Oak Ave"]
+        assert rule_extract("details for 789 Pine Ln").properties == ["789 Pine Ln"]
+
     def test_absolute_periods(self) -> None:
         e = rule_extract("P&L for Q2 2024 and June 2024 and 2025-Q1")
         specs = [(p.year, p.quarter, p.month) for p in e.periods]
