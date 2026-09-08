@@ -31,10 +31,14 @@ def get_chat_model(role: Role, settings: Settings) -> BaseChatModel:
         case LLMProvider.OLLAMA:
             from langchain_ollama import ChatOllama
 
+            # reasoning=False: qwen-class models otherwise "think" for tens of seconds before
+            # emitting JSON; num_predict bounds runaway generations.
             return ChatOllama(
                 model=settings.ollama_model,
                 base_url=settings.ollama_base_url,
                 temperature=settings.llm_temperature,
+                reasoning=False,
+                num_predict=1024,
             )
         case LLMProvider.GEMINI:
             if not has_gemini_key():

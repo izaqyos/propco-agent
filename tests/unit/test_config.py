@@ -1,5 +1,6 @@
 """Settings: environment-driven, prefixed, validated, never holding secrets."""
 
+import os
 from pathlib import Path
 
 import pytest
@@ -13,7 +14,12 @@ pytestmark = pytest.mark.unit
 
 @pytest.fixture(autouse=True)
 def _clean_env(monkeypatch: pytest.MonkeyPatch) -> None:
-    for key in ("GOOGLE_API_KEY", "GEMINI_API_KEY"):
+    """Isolate from the developer's / CI's environment (CI sets PROPCO_LLM_PROVIDER=fake)."""
+    for key in (
+        "GOOGLE_API_KEY",
+        "GEMINI_API_KEY",
+        *[k for k in os.environ if k.startswith("PROPCO_")],
+    ):
         monkeypatch.delenv(key, raising=False)
     reset_settings()
 

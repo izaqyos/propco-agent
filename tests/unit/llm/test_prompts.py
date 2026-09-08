@@ -52,6 +52,20 @@ def test_extractor_knows_the_dataset_vocabulary() -> None:
     assert "same_period_last_year" in text
 
 
+def test_extractor_has_worked_json_examples() -> None:
+    """Small models copy the shape they are shown; every field must appear filled at least once."""
+    text = render_prompt(PromptName.EXTRACTOR, CTX)
+    for snippet in (
+        '"relative": "this_year"',
+        '"year": 2024, "quarter": 2',
+        '"year": 2024, "month": 6',
+        '"metric": "price"',
+        '"top_n": 3',
+        '"ledger_type": "expenses"',
+    ):
+        assert snippet in text, snippet
+
+
 def test_synth_forbids_arithmetic() -> None:
     text = render_prompt(PromptName.SYNTH, CTX).lower()
     assert "do not" in text

@@ -34,6 +34,9 @@ def test_ollama_provider_uses_configured_model_and_url() -> None:
     assert model.model == "qwen3.5:9b"
     assert model.base_url == "http://localhost:11434"
     assert model.temperature == 0.0
+    # structured roles must not spend minutes "thinking" before emitting JSON
+    assert model.reasoning is False
+    assert model.num_predict == 1024
 
 
 def test_gemini_provider_tiers_models_by_role(monkeypatch: pytest.MonkeyPatch) -> None:
