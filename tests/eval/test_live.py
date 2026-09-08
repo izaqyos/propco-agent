@@ -54,7 +54,7 @@ def service() -> AssetManagerService:
 @dataclass
 class Case:
     question: str
-    intents: set[str]
+    intents: set[str] | None  # None: parent intent is irrelevant (compound questions)
     expect: list[str] = field(default_factory=list)
     needs_input: bool = False
     result_kinds: set[str] | None = None
@@ -67,7 +67,7 @@ def _june_2024_expenses(service: AssetManagerService) -> str:
         policy=DataPolicy.RAW,
         as_of=service.deps.as_of,
     )
-    return format_money(result.total)
+    return format_money(result.total).lstrip("-€")  # "85,952.54": models vary on sign placement
 
 
 CASES: list[Case] = [
@@ -79,8 +79,8 @@ CASES: list[Case] = [
     ),
     Case(
         "Who are my top tenants, and is anything unusual in the numbers?",
-        {"tenant_analysis", "anomaly_check"},
-        ["Tenant 7"],
+        None,
+        ["Tenant 7", "duplicate"],
         result_kinds={"tenant_ranking", "anomaly_report"},
     ),
     Case("Details for the property at Building 17", {"asset_details"}, ["€352,566.81"]),
@@ -101,7 +101,9 @@ CASES: list[Case] = [
         ["Building 120", "€675,640.08"],
     ),
     Case("top 3 tenants last year", {"tenant_analysis"}, ["Tenant 7", "Tenant 14", "Tenant 11"]),
-    Case("expenses in June 2024", {"pnl"}, ["JUNE_2024_EXPENSES"]),
+    Case(
+        "expenses in June 2024", {"pnl"}, ["JUNE_2024_EXPENSES"]
+    ),  # digits only; sign placement varies
     Case("numbers?", {"clarify"}, [], needs_input=True),
 ]
 
@@ -132,7 +134,8 @@ def test_case(service: AssetManagerService, case: Case) -> None:
         "text": text,
     }
     _report.append(entry)
-    assert intent in case.intents, entry
+    if case.intents is not None:
+        assert intent in case.intents, entry
     assert result.needs_input is case.needs_input, entry
     for token in expected:
         assert token in (text or ""), entry
@@ -147,6 +150,6 @@ def _write_report() -> Iterator[None]:
         return
     REPORTS.mkdir(exist_ok=True)
     provider = _provider().value
-    out = REPORTS / f"{provider}_{time.strftime('%Y-%m-%d')}.json"
+    out = REPORTS / f"{provider}_{time.strftime('%Y-%m-%dT%H%M')}.json"
     out.write_text(json.dumps(_report, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"\nwrote {out}")

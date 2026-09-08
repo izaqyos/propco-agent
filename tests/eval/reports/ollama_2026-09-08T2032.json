@@ -1,0 +1,42 @@
+[
+  {
+    "question": "Who are my top tenants, and is anything unusual in the numbers?",
+    "intent": "pnl",
+    "needs_input": false,
+    "degraded": false,
+    "llm_answer_grounded": true,
+    "seconds": 31.1,
+    "result_kinds": [
+      "anomaly_report",
+      "tenant_ranking"
+    ],
+    "errors": [],
+    "text": "Your top tenants are Tenant 7 (€880,535.66), Tenant 14 (€391,490.26), and Tenant 11 (€292,531.00), which together represent 54.18% of the total revenue of €2,887,652.89 for the period from 2024-01 to 2025-03. Several anomalies were found: 1,747 rows (44.52%) are exact duplicates; 449 reversal pairs cancel €3,349,539.39 gross; ledger code 4650 is mapped to multiple categories causing double counting; there was an unusual posting volume spike in 2024-M06; 1,348 rows have zero amounts; -€1,294,426.37 is booked at entity level as unallocated overhead; and Tenant 7 alone accounts for 30.49% of revenue.\n\nSteps: guard → router → extractor → resolver → analyst_tenants → sub_question → router → extractor → resolver → analyst_anomalies → sub_question → synthesizer"
+  },
+  {
+    "question": "top 3 tenants last year",
+    "intent": "tenant_analysis",
+    "needs_input": false,
+    "degraded": false,
+    "llm_answer_grounded": true,
+    "seconds": 17.1,
+    "result_kinds": [
+      "tenant_ranking"
+    ],
+    "errors": [],
+    "text": "The top 3 tenants for 2024 are Tenant 7 (€703,009.03), Tenant 14 (€310,188.48), and Tenant 11 (€232,925.56). These three generated a combined revenue share of 54.28% out of a total portfolio revenue of €2,295,528.74.\n\n*   **Tenant 7**: €703,009.03 (30.63%) on Building 120\n*   **Tenant 14**: €310,188.48 (13.51%) on Building 180\n*   **Tenant 11**: €232,925.56 (10.15%) on Building 160\n\nThe analysis is anchored to the data as of 2025-03, where 'last year' refers to the full calendar year 2024. The ledger contains data for 18 tenants in total.\n\nSteps: guard → router → extractor → resolver → analyst_tenants → synthesizer"
+  },
+  {
+    "question": "expenses in June 2024",
+    "intent": "pnl",
+    "needs_input": false,
+    "degraded": false,
+    "llm_answer_grounded": true,
+    "seconds": 13.1,
+    "result_kinds": [
+      "pnl"
+    ],
+    "errors": [],
+    "text": "In June 2024, total expenses amounted to -€85,952.54 with no revenue recorded. This figure includes €-521.74 for Building 120, €-857.07 for Building 140, €-521.74 for Building 160, €-406.95 for Building 17, €-521.74 for Building 180, and €-83,123.30 in unallocated expenses.\n\nSteps: guard → router → extractor → resolver → analyst_pnl → synthesizer"
+  }
+]

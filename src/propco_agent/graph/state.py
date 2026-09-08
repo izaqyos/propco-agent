@@ -97,6 +97,7 @@ class AgentState(TypedDict, total=False):
     resolved: ResolvedQuery | None
     unresolved: Unresolved | None
     results: Annotated[list[AnalysisResult], operator.add]
+    notes: Annotated[list[str], operator.add]  # disclosures for the answer (as-of anchor, YTD, ...)
     answer: str
     clarification: str | None
     clarify_rounds: int
@@ -116,6 +117,7 @@ def initial_state(
         resolved=None,
         unresolved=None,
         results=[],
+        notes=[],
         answer="",
         clarification=None,
         clarify_rounds=0,

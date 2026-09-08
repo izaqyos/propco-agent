@@ -11,7 +11,7 @@ The task brief leaves several things open. Each assumption below is a decision, 
 5. **Rows without a property are entity-level overhead** (mortgage interest, asset-management fees, taxes, insurance; about -1.29M over the range).
    - Property-level P&L is reported as **contribution** (excludes overhead).
    - Portfolio P&L is reported as **net** (includes overhead).
-   - Every answer names which one it is. An allocation view (overhead spread by revenue share) is offered but not the default.
+   - Every answer names which one it is. Allocating overhead across properties (e.g. by revenue share) is a natural extension; it is not implemented, and the assistant does not pretend otherwise.
 6. **No valuation data.** There is no price, market value, appraisal date, street address, floor area or occupancy in the ledger. Questions about these return what the ledger does hold (revenue, expenses, contribution, tenants, active months) and say plainly what it does not. The brief's "123 Main St priced at $500,000" example is therefore unanswerable by design; a valuation feed is a documented extension point, not a stub with fake numbers.
 7. **Property references are names, not addresses.** "Bldg 17", "building 17", "#17" resolve to `Building 17` by fuzzy match. Anything below the match threshold triggers a clarification with the closest candidates.
 

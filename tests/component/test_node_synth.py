@@ -35,6 +35,7 @@ def pnl_state(deps: Deps) -> AgentState:
         notes=["portfolio net includes entity-level overhead"],
     )
     state["results"] = [result]
+    state["notes"] = ["portfolio net includes entity-level overhead"]  # resolver writes both
     state["trace"] = [TraceEvent(node="router", ms=1, summary="intent=pnl")]
     return state
 

@@ -53,8 +53,7 @@ def make_synthesizer(deps: Deps) -> Node:
 
     def synthesizer(state: AgentState) -> NodeUpdate:
         results = list(state.get("results", []))
-        resolved = state.get("resolved")
-        notes = list(resolved.notes) if resolved is not None else []
+        notes = list(dict.fromkeys(state.get("notes", [])))  # deduped, order kept
         errors = list(state.get("errors", []))
         steps = [*_steps(state), "synthesizer"]
         templated = render_answer(

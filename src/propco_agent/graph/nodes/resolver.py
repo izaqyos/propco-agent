@@ -87,7 +87,12 @@ def make_resolver(deps: Deps) -> Node:
                 f"filter: {resolved.filter.describe()}; periods={[p.label for p in periods]}; "
                 f"metric={metric.value}"
             )
-            return {"resolved": resolved, "unresolved": None, "trace": [done(summary)]}
+            return {
+                "resolved": resolved,
+                "unresolved": None,
+                "notes": notes,
+                "trace": [done(summary)],
+            }
 
     return resolver
 

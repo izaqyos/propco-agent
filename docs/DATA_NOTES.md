@@ -45,7 +45,7 @@ Top tenants 2024 by revenue: Tenant 7 703,009.03 (30.63%), Tenant 14 310,188.48,
 ## Contribution vs net
 
 9. 581 rows have no property: mortgage interest (code 4611), asset-management fees (4820), taxes, insurance. Together -1,294,426.37.
-10. Property-level P&L is therefore a **contribution** figure. Portfolio P&L is **net** and includes the overhead. Answers say which one they report. An allocation view (overhead spread by revenue share) exists as an option, not a default.
+10. Property-level P&L is therefore a **contribution** figure. Portfolio P&L is **net** and includes the overhead. Answers say which one they report. Allocating overhead across properties (by revenue share, floor area, ...) is a natural extension and is not implemented.
 
 ## Anomalies
 

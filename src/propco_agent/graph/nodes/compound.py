@@ -37,6 +37,7 @@ def make_sub_question(subgraph: Any) -> Node:
                 errors.append(f"sub-question '{question}' could not be answered: {reason}")
             return {
                 "results": results,
+                "notes": list(out.get("notes", [])),
                 "errors": errors,
                 "degraded": bool(out.get("degraded", False)),
                 "trace": [

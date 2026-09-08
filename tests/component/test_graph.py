@@ -191,6 +191,9 @@ class TestCompound:
         assert kinds == ["anomaly_report", "tenant_ranking"]
         assert "Tenant 7" in out["answer"]
         assert "duplicate" in out["answer"]
+        # disclosures from the sub-questions' resolvers reach the final answer
+        assert "all available data" in out["answer"]
+        assert any("all available data" in n for n in out["notes"])
         trace_nodes = nodes(out)
         assert trace_nodes.count("router") == 3  # parent + 2 sub-questions
         assert "analyst_tenants" in trace_nodes
