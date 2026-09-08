@@ -84,6 +84,11 @@ class TestPeriodBehaviour:
         p = Period.year(2024)
         assert p.clip_to("2025-M03") == p
 
+    def test_clipped_flag_marks_partial_periods(self) -> None:
+        assert Period.year(2024).clipped is False
+        assert Period.year(2025).clip_to("2025-M03").clipped is True
+        assert Period.quarter(2025, 1).clip_to("2025-M03").clipped is False
+
     def test_contains_month_key(self) -> None:
         p = Period.quarter(2024, 2)
         assert p.contains("2024-M05")

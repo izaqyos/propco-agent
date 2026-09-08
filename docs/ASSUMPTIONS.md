@@ -17,9 +17,9 @@ The task brief leaves several things open. Each assumption below is a decision, 
 
 ## Data quality policy
 
-8. **Trust the ledger as posted (RAW).** 1,747 rows (44%) are exact duplicates of another row and 440 pairs are exact `+x / -x` reversals within the same month. The ledger has no transaction id, so a duplicate cannot be distinguished from a legitimate repeated posting (same tenant, same amount, same month, two units). Dropping duplicates changes 2024 P&L by 42% and turns 2024-Q2 negative, which is not defensible. Default: sum what is posted, **flag** what looks off. `PROPCO_DATA_POLICY=dedup` exposes the alternative view with a warning.
-9. **One provable defect is flagged, not silently fixed.** Ledger code 4650 (`Bankkosten | Bank charges`) is mapped to two categories (`bank_charges` and `financial_expenses`), double-counting -184 EUR. Fixing one row-level bug while keeping 1,700 suspicious rows would be inconsistent; the anomaly report lists it.
-10. **June 2024 is treated as a real anomaly, not an error.** 804 rows (2.5x a normal month) and a net of -247,866 against +56k..+119k every other month. It is reported, not smoothed.
+8. **Trust the ledger as posted (RAW).** 1,747 rows (44%) are exact duplicates of another row and 449 pairs are exact `+x / -x` reversals within the same month. The ledger has no transaction id, so a duplicate cannot be distinguished from a legitimate repeated posting (same tenant, same amount, same month, two units). Dropping duplicates changes 2024 P&L by 42% and turns 2024-Q2 negative, which is not defensible. Default: sum what is posted, **flag** what looks off. `PROPCO_DATA_POLICY=dedup` exposes the alternative view with a warning.
+9. **One provable defect is flagged, not silently fixed.** Ledger code 4650 (`Bankkosten | Bank charges`) is mapped to two categories (`bank_charges` and `financial_expenses`): 242 rows, -7,255.08 in total, roughly half of it double counted. Fixing one row-level bug while keeping 1,700 suspicious rows would be inconsistent; the anomaly report lists it.
+10. **June 2024 is treated as a real anomaly, not an error.** 804 rows (2.5x a normal month, z = 3.3) from a batch of corrections and reversals. Its RAW net is ordinary; only the deduplicated view turns it into a -247,866 month. It is reported, not smoothed. Spike detection runs on both posting volume and monthly net (|z| > 2.5).
 
 ## Time
 

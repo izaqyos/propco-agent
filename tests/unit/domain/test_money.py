@@ -35,3 +35,10 @@ def test_round_cents_half_up() -> None:
     assert round_cents(2.675) == 2.68
     assert round_cents(-2.675) == -2.68
     assert round_cents(1.0049) == 1.0
+
+
+def test_round_cents_accepts_numpy_scalars() -> None:
+    import numpy as np
+
+    assert round_cents(np.float64(1533331.8700000001)) == 1533331.87
+    assert format_money(np.float64(-0.004)) == "€0.00"

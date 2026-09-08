@@ -9,8 +9,12 @@ _CENTS = Decimal("0.01")
 
 
 def round_cents(amount: float) -> float:
-    """Round to two decimals, half away from zero (accounting convention)."""
-    return float(Decimal(repr(amount)).quantize(_CENTS, rounding=ROUND_HALF_UP))
+    """Round to two decimals, half away from zero (accounting convention).
+
+    Accepts numpy scalars (``float()`` first, so ``repr`` is a plain decimal literal).
+    """
+    value = float(Decimal(repr(float(amount))).quantize(_CENTS, rounding=ROUND_HALF_UP))
+    return 0.0 if value == 0 else value  # normalise -0.0
 
 
 def format_money(amount: float, currency: str = "EUR") -> str:

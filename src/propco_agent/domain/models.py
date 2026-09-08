@@ -79,6 +79,7 @@ class Period(BaseModel):
     start: str = Field(pattern=r"^\d{4}-\d{2}$")
     end: str = Field(pattern=r"^\d{4}-\d{2}$")
     label: str
+    clipped: bool = False  # True when the period was cut at the data's as-of month
 
     @classmethod
     def range(cls, start: str, end: str, label: str | None = None) -> Period:
@@ -136,7 +137,9 @@ class Period(BaseModel):
         as_of = Period.from_data_month(as_of_data_month).end
         if _ym_to_index(self.end) <= _ym_to_index(as_of):
             return self
-        return Period(start=self.start, end=as_of, label=f"{self.label} YTD (through {as_of})")
+        return Period(
+            start=self.start, end=as_of, label=f"{self.label} YTD (through {as_of})", clipped=True
+        )
 
     def __str__(self) -> str:
         """The human label (e.g. ``2024-Q2``)."""
