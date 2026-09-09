@@ -27,8 +27,8 @@ def _clean_env(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_defaults() -> None:
     s = Settings(_env_file=None)
     assert s.llm_provider is LLMProvider.GEMINI
-    assert s.gemini_model_small == "gemini-2.5-flash-lite"
-    assert s.gemini_model_large == "gemini-2.5-flash"
+    assert s.gemini_model_small == "gemini-3.5-flash-lite"
+    assert s.gemini_model_large == "gemini-3.5-flash"
     assert s.ollama_model == "qwen3.5:9b"
     assert s.ollama_base_url == "http://localhost:11434"
     assert s.data_path == Path("data/amiio.parquet")

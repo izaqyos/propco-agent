@@ -29,7 +29,7 @@ The task brief leaves several things open. Each assumption below is a decision, 
 
 ## Language model
 
-14. **Provider.** Gemini Flash free tier, per the interviewer. `gemini-2.5-flash-lite` for routing and extraction, `gemini-2.5-flash` for prose. Ollama (`qwen3.5:9b`) is a fully offline alternative; tests use a scripted fake. Switch with `PROPCO_LLM_PROVIDER`.
+14. **Provider.** Gemini Flash free tier, per the interviewer. `gemini-3.5-flash-lite` for routing and extraction, `gemini-3.5-flash` for prose. Ollama (`qwen3.5:9b`) is a fully offline alternative; tests use a scripted fake. Switch with `PROPCO_LLM_PROVIDER`.
 15. **The model never does arithmetic.** Numbers come from deterministic pandas code; the model classifies, extracts and phrases. Every money figure in an answer is checked against the computed result before it is shown; on mismatch a templated answer is returned instead.
 16. **Free-tier quotas are a design input.** Repeated questions are served from a node-level cache, HTTP 429 triggers exponential backoff, and quota exhaustion degrades to a templated answer over the deterministic result rather than an error.
 17. **User text is data, not instructions.** It is passed to the model inside delimiters with a fixed system prompt; nothing in the user's message can change the graph's route or the numbers.

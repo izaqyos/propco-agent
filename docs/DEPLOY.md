@@ -15,7 +15,7 @@ Notes.
 ## 2. Local, Gemini
 
 1. Create a key in Google AI Studio and put it in `.env` as `GOOGLE_API_KEY=...` (the file is gitignored; never commit it).
-2. `PROPCO_LLM_PROVIDER=gemini`. Defaults: `gemini-2.5-flash-lite` for routing and extraction, `gemini-2.5-flash` for writing. Override with `PROPCO_GEMINI_MODEL_SMALL` / `_LARGE`.
+2. `PROPCO_LLM_PROVIDER=gemini`. Defaults: `gemini-3.5-flash-lite` for routing and extraction, `gemini-3.5-flash` for writing. Override with `PROPCO_GEMINI_MODEL_SMALL` / `_LARGE`.
 3. `make run`.
 
 Free-tier consequences and how the code handles them.

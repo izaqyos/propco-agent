@@ -67,7 +67,7 @@ Short architecture decision records. Each one: the choice, what it was chosen ov
 
 ## ADR-10 · Gemini Flash free tier, Ollama for development, fake for tests
 
-**Chosen:** provider-agnostic factory; `gemini-2.5-flash-lite` for router/extractor and `gemini-2.5-flash` for prose in deployment; `qwen3.5:9b` via Ollama offline; a scripted fake in CI.
+**Chosen:** provider-agnostic factory; `gemini-3.5-flash-lite` for router/extractor and `gemini-3.5-flash` for prose in deployment; `qwen3.5:9b` via Ollama offline; a scripted fake in CI.
 **Over:** one provider hard-wired.
 **Why:** the interviewer asked for the Gemini free tier; the split model tiering doubles the effective free quota and matches the tasks (classification is easy, prose is not). Ollama makes development free and offline. The fake makes 400 tests deterministic and fast.
 **Cost:** three code paths in one factory and provider-specific settings (`reasoning=False` on Ollama). Twenty lines.

@@ -20,7 +20,7 @@ All settings are `PROPCO_*` environment variables; `.env` is read locally and St
 | Variable | Default | Notes |
 |---|---|---|
 | `PROPCO_LLM_PROVIDER` | `gemini` | `gemini` needs `GOOGLE_API_KEY`; `ollama` needs a reachable server; `fake` answers from rules and templates only |
-| `PROPCO_GEMINI_MODEL_SMALL` / `_LARGE` | `gemini-2.5-flash-lite` / `gemini-2.5-flash` | routing+extraction / prose. Any current Flash id works |
+| `PROPCO_GEMINI_MODEL_SMALL` / `_LARGE` | `gemini-3.5-flash-lite` / `gemini-3.5-flash` | routing+extraction / prose. Any current Flash id works |
 | `PROPCO_OLLAMA_BASE_URL`, `PROPCO_OLLAMA_MODEL` | `http://localhost:11434`, `qwen3.5:9b` | the model must support tools; thinking is disabled by the client |
 | `PROPCO_DATA_PATH` | `data/amiio.parquet` | any parquet with the same columns |
 | `PROPCO_DATA_POLICY` | `raw` | default view; users can switch per session |

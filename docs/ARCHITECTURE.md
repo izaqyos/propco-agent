@@ -97,7 +97,7 @@ Three model calls, all three replaceable by rules and templates if the provider 
 ## 8. Efficiency
 
 1. One question = 3 model calls (router, extractor, synthesizer); general knowledge = 2; compound = 1 + 2 per sub-question + 1. Cached repeats = 1.
-2. Small model for classification and extraction, larger for prose (`gemini-2.5-flash-lite` / `gemini-2.5-flash`).
+2. Small model for classification and extraction, larger for prose (`gemini-3.5-flash-lite` / `gemini-3.5-flash`).
 3. Data loaded once per process; analytics are vectorised pandas over 3,924 rows (sub-millisecond per query).
 4. Measured locally with Ollama `qwen3.5:9b`, thinking disabled: 5–8 s per question end to end (18–93 s with thinking enabled, which is why it is disabled).
 

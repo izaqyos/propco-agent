@@ -47,8 +47,8 @@ def test_gemini_provider_tiers_models_by_role(monkeypatch: pytest.MonkeyPatch) -
     small = get_chat_model(Role.ROUTER, s)
     large = get_chat_model(Role.SYNTH, s)
     assert isinstance(small, ChatGoogleGenerativeAI)
-    assert "gemini-2.5-flash-lite" in small.model
-    assert "gemini-2.5-flash" in large.model
+    assert "gemini-3.5-flash-lite" in small.model
+    assert "gemini-3.5-flash" in large.model
     assert "lite" not in large.model
     assert get_chat_model(Role.EXTRACTOR, s).model == small.model
     assert get_chat_model(Role.GENERAL, s).model == large.model

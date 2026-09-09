@@ -37,8 +37,8 @@ class Settings(BaseSettings):
 
     # LLM
     llm_provider: LLMProvider = LLMProvider.GEMINI
-    gemini_model_small: str = "gemini-2.5-flash-lite"  # routing, extraction
-    gemini_model_large: str = "gemini-2.5-flash"  # answer synthesis, general knowledge
+    gemini_model_small: str = "gemini-3.5-flash-lite"  # routing, extraction
+    gemini_model_large: str = "gemini-3.5-flash"  # answer synthesis, general knowledge
     ollama_base_url: str = "http://localhost:11434"
     ollama_model: str = "qwen3.5:9b"
     llm_timeout_s: float = Field(default=60, gt=0)
