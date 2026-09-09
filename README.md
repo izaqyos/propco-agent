@@ -24,6 +24,7 @@ A multi-agent assistant for real-estate asset management. Ask it, in English or 
 11. [Challenges](#11-challenges)
 12. [Assumptions and known limits](#12-assumptions-and-known-limits)
 13. [Repository layout](#13-repository-layout)
+14. [Guides](#14-guides)
 
 ## 1. What it answers
 
@@ -181,5 +182,11 @@ docs/    ARCHITECTURE  DECISIONS  CHALLENGES  DATA_NOTES  ASSUMPTIONS  DEPLOY  E
 scripts/ check_licenses.py  smoke_llm.py  eval_report.py
 Dockerfile  docker-compose.yml  Makefile  .github/workflows/ci.yml
 ```
+
+## 14. Guides
+
+- [User guide](docs/USER_GUIDE.md) — what to ask, how to read an answer, the sidebar controls.
+- [Administrator guide](docs/ADMIN_GUIDE.md) — configuration, secrets, monitoring, quotas, data and model changes, troubleshooting.
+- [Deployment](docs/DEPLOY.md) — local, Gemini, Streamlit Community Cloud, Docker.
 
 License: MIT.
