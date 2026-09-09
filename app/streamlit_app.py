@@ -17,6 +17,7 @@ _ROOT = Path(__file__).resolve().parents[1]
 if str(_ROOT) not in sys.path:  # streamlit runs this file with app/ as the script directory
     sys.path.insert(0, str(_ROOT))
 
+from app.components.headline import headline_metric
 from app.components.secrets import bridge_secrets
 from app.components.tables import (
     anomaly_report,
@@ -78,6 +79,7 @@ def _record(result: AskResult) -> None:
         {
             "role": "assistant",
             "content": content or "",
+            "results": result.results,
             "trace": [t.model_dump() for t in result.trace],
             "degraded": result.degraded,
             "errors": result.errors,
@@ -92,9 +94,11 @@ def _run_turn(service: AssetManagerService, text: str, policy: DataPolicy) -> No
     thread_id: str = st.session_state["thread_id"]
     try:
         if st.session_state["pending"]:
-            result = service.resume(text, thread_id=thread_id)
+            with st.status("Thinking…", expanded=True) as status:
+                result = service.resume(text, thread_id=thread_id)
+                status.update(label="Done", state="complete")
         else:
-            with st.status("Thinking…", expanded=False) as status:
+            with st.status("Thinking…", expanded=True) as status:
                 final: AskResult | None = None
                 for event in service.stream(text, thread_id=thread_id, policy=policy):
                     if isinstance(event, TraceEvent):
@@ -118,6 +122,11 @@ def _run_turn(service: AssetManagerService, text: str, policy: DataPolicy) -> No
 
 def _render_message(message: dict[str, Any]) -> None:
     with st.chat_message(message["role"]):
+        if message["role"] == "assistant":
+            headline = headline_metric(message.get("results") or [])
+            if headline is not None:
+                label, value, delta = headline
+                st.metric(label, value, delta=delta)
         st.markdown(message["content"])
         if message["role"] != "assistant":
             return

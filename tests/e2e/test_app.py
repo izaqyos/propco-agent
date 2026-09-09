@@ -41,6 +41,10 @@ class TestChat:
         assert any("trace" in e.label.lower() for e in app.expander)
         assert not app.exception
 
+    def test_pnl_answer_shows_a_headline_metric(self, app: AppTest) -> None:
+        ask(app, "total P&L for 2024")
+        assert any(m.value == "€1,171,521.55" for m in app.metric)
+
     def test_degraded_mode_is_flagged(self, app: AppTest) -> None:
         ask(app, "total P&L for 2024")
         assert any(
@@ -59,6 +63,16 @@ class TestChat:
         assert any("waiting" in i.value.lower() for i in app.info)
         ask(app, "total P&L for 2024")
         assert "€1,171,521.55" in last_assistant(app)
+
+    def test_resume_turn_shows_a_status_widget(
+        self, app: AppTest, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        # st.rerun() normally wipes the transient status widget immediately; disable it
+        # for the turn under test so we can inspect the tree it produced.
+        ask(app, "hmm")
+        monkeypatch.setattr("streamlit.rerun", lambda: None)
+        ask(app, "total P&L for 2024")
+        assert len(app.status) >= 1
 
     def test_unknown_property_suggests_candidates(self, app: AppTest) -> None:
         ask(app, "details for 123 Main St")
