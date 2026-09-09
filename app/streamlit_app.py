@@ -123,10 +123,12 @@ def _run_turn(service: AssetManagerService, text: str, policy: DataPolicy) -> No
 def _render_message(message: dict[str, Any]) -> None:
     with st.chat_message(message["role"]):
         if message["role"] == "assistant":
-            headline = headline_metric(message.get("results") or [])
-            if headline is not None:
-                label, value, delta = headline
-                st.metric(label, value, delta=delta)
+            metrics = headline_metric(message.get("results") or [])
+            if metrics:
+                for col, (label, value, delta) in zip(
+                    st.columns(len(metrics)), metrics, strict=True
+                ):
+                    col.metric(label, value, delta=delta)
         st.markdown(message["content"])
         if message["role"] != "assistant":
             return

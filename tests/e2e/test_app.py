@@ -45,6 +45,11 @@ class TestChat:
         ask(app, "total P&L for 2024")
         assert any(m.value == "€1,171,521.55" for m in app.metric)
 
+    def test_period_compare_shows_both_quarters(self, app: AppTest) -> None:
+        ask(app, "How does this quarter compare to the same period last year?")
+        values = {m.value for m in app.metric}
+        assert {"€361,810.32", "€262,309.07"} <= values
+
     def test_degraded_mode_is_flagged(self, app: AppTest) -> None:
         ask(app, "total P&L for 2024")
         assert any(
