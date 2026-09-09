@@ -10,6 +10,7 @@ import json
 import re
 from collections.abc import Iterable, Sequence
 
+from langchain_core.messages import BaseMessage
 from pydantic import BaseModel
 
 from propco_agent.graph.deps import Deps
@@ -28,6 +29,16 @@ _NUMBER_RE = re.compile(
 )
 _STEPS_LINE = re.compile(r"^\s*steps?\s*:.*$", re.IGNORECASE | re.MULTILINE)
 _TOLERANCE = 0.005
+
+
+def message_text(message: BaseMessage) -> str:
+    """Plain answer text from a model response.
+
+    Some providers (e.g. Gemini's newer models) return ``content`` as a list of blocks
+    that mix visible text with opaque metadata (thought signatures, citations). ``.text``
+    concatenates only the text blocks; ``str(content)`` would leak the whole structure.
+    """
+    return message.text
 
 
 def grounding_violations(text: str, allowed: Iterable[float]) -> list[float]:
@@ -65,13 +76,13 @@ def make_synthesizer(deps: Deps) -> Node:
                 return {"answer": templated, "trace": [done("templated answer (no results)")]}
             payload = _results_block(results, notes, steps[:-1])
             try:
-                text = str(
+                text = message_text(
                     model.invoke(
                         [
                             system_message(deps, PromptName.SYNTH),
                             user_message(state["question"], payload),
                         ]
-                    ).content
+                    )
                 )
             except Exception as exc:
                 return {
@@ -103,10 +114,10 @@ def make_general(deps: Deps) -> Node:
     def general(state: AgentState) -> NodeUpdate:
         with timed("general") as done:
             try:
-                text = str(
+                text = message_text(
                     model.invoke(
                         [system_message(deps, PromptName.GENERAL), user_message(state["question"])]
-                    ).content
+                    )
                 ).strip()
             except Exception as exc:
                 return {

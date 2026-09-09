@@ -1,6 +1,7 @@
 """Synthesizer, general-knowledge and unsupported nodes."""
 
 import pytest
+from langchain_core.messages import AIMessage
 
 from propco_agent.analytics.pnl import compute_pnl
 from propco_agent.domain.models import DataPolicy, Intent, LedgerFilter, Period
@@ -10,6 +11,7 @@ from propco_agent.graph.nodes.synth import (
     make_general,
     make_synthesizer,
     make_unsupported,
+    message_text,
 )
 from propco_agent.graph.state import AgentState, ResolvedQuery, TraceEvent, initial_state
 from propco_agent.llm.factory import Role
@@ -58,6 +60,30 @@ class TestGrounding:
             )
             == []
         )
+
+
+class TestMessageText:
+    def test_plain_string_content(self) -> None:
+        assert message_text(AIMessage(content="hello")) == "hello"
+
+    def test_multi_part_content_keeps_only_text(self) -> None:
+        # Gemini's response format for newer models: a list of content blocks, some of which
+        # (e.g. "extras": {"signature": ...}) are opaque provider metadata, not answer text.
+        # str(message.content) would stringify the whole list/dict structure into the answer.
+        message = AIMessage(
+            content=[
+                {"type": "text", "text": "The total P&L is €1,171,521.55.", "extras": {}},
+                {
+                    "type": "text",
+                    "text": "",
+                    "extras": {"signature": "EuktCuYtARFNMg9JMmoH5rAVZRXLGSiY="},
+                },
+            ]
+        )
+        text = message_text(message)
+        assert text == "The total P&L is €1,171,521.55."
+        assert "signature" not in text
+        assert "extras" not in text
 
 
 class TestSynthesizer:
