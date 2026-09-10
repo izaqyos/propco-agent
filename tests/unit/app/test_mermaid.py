@@ -20,6 +20,16 @@ def test_loads_and_initializes_the_mermaid_library() -> None:
     assert "initialize" in html
 
 
+def test_uses_the_classic_script_tag_not_an_es_module() -> None:
+    # An ES-module CDN import (type="module") was tried first and silently failed inside
+    # Streamlit's sandboxed components iframe on the deployed app: the mermaid source showed
+    # up as raw unstyled text, never diagrammed. The classic UMD <script src="..."> tag is
+    # the pattern mermaid's own docs use for exactly this embed-in-arbitrary-HTML case.
+    html = mermaid_html("graph TD;\n  A-->B;")
+    assert '<script src="' in html
+    assert 'type="module"' not in html
+
+
 def test_does_not_html_escape_the_source() -> None:
     # our own generated sources embed HTML in node labels (e.g. "<p>__start__</p>"),
     # which mermaid needs verbatim to render the label, not as "&lt;p&gt;".
