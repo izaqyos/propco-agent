@@ -2,6 +2,8 @@
 
 Each diagram is one question through the graph. Node names match `src/propco_agent/graph/`. Model calls are marked `LLM`; everything else is deterministic code.
 
+Each mermaid block is followed by a static SVG render of the same diagram (`img/`), in case your viewer doesn't render mermaid — GitHub, VS Code with the mermaid preview extension, and mermaid.live all do; a plain file browser or an outdated preview extension may not.
+
 ## 1. P&L for a period
 
 `What is the total P&L for all my properties this year?`
@@ -26,6 +28,8 @@ sequenceDiagram
     S-->>U: answer + notes (as-of anchor, YTD) + Steps line
 ```
 
+![P&L for a period](img/seq-1-pnl-for-a-period.svg)
+
 ## 2. Period comparison, like-for-like
 
 `How does this quarter compare to the same period last year?`
@@ -46,6 +50,8 @@ sequenceDiagram
     A->>S: a=€361,810.32 b=€262,309.07 Δ=€99,501.25 (+37.93 %), like_for_like=true
     S-->>U: answer
 ```
+
+![Period comparison, like-for-like](img/seq-2-period-comparison-like-for-like.svg)
 
 ## 3. Clarification with `interrupt`, then resume
 
@@ -72,6 +78,8 @@ sequenceDiagram
     E->>V: properties=["Building 17"]
     V-->>U: … analyst_asset_details → synthesizer → answer
 ```
+
+![Clarification with interrupt, then resume](img/seq-3-clarification-with-interrupt-then-resume.svg)
 
 ## 4. Compound question, `Send` fan-out
 
@@ -100,6 +108,8 @@ sequenceDiagram
     S-->>U: one answer covering both, or "Not answered: …" for a failed branch
 ```
 
+![Compound question, Send fan-out](img/seq-4-compound-question-send-fan-out.svg)
+
 ## 5. Unsupported metric, substituted and disclosed
 
 `What is the price of my asset at Building 17 compared to Building 120?`
@@ -120,6 +130,8 @@ sequenceDiagram
     A->>S: ranked=[Building 120, Building 17]
     S-->>U: ranking by P&L contribution + the disclosure that price is not available
 ```
+
+![Unsupported metric, substituted and disclosed](img/seq-5-unsupported-metric-substituted-and-disclosed.svg)
 
 ## 6. Provider outage, graceful degradation
 
@@ -144,6 +156,8 @@ sequenceDiagram
     S-->>U: templated answer + Steps, UI shows a "degraded mode" notice
 ```
 
+![Provider outage, graceful degradation](img/seq-6-provider-outage-graceful-degradation.svg)
+
 ## 7. Anomaly check
 
 `is anything unusual in the numbers?`
@@ -162,3 +176,5 @@ sequenceDiagram
     A->>S: AnomalyReport (7 findings on the raw view)
     S-->>U: findings ordered by severity, each with its evidence
 ```
+
+![Anomaly check](img/seq-7-anomaly-check.svg)
