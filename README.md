@@ -166,7 +166,7 @@ The brief's own examples are unanswerable from the data; 44 % of rows are exact 
 
 Twenty numbered assumptions, each with its reason and where it lives in code: [docs/ASSUMPTIONS.md](docs/ASSUMPTIONS.md). Highlights: the file is Parquet not CSV; currency is EUR (Dutch ledger); `profit` is a signed contribution; entity-level overhead makes property P&L a contribution figure and portfolio P&L a net figure; the ledger has no prices or valuations; "today" is 2025-03.
 
-Known limits: one entity and one user, no authentication; in-memory checkpointer and cache (per process); rule-based fallback is English-only (the model path handles Dutch); an answer that rounds a figure falls back to the template.
+Known limits: one entity and one user, no authentication; in-memory checkpointer and cache (per process); rule-based fallback is English-only (the model path handles Dutch); an answer that rounds a figure falls back to the template. Five of these, with the concrete fix for each: [docs/LIMITATIONS.md](docs/LIMITATIONS.md).
 
 ## 13. Repository layout
 
@@ -178,7 +178,7 @@ src/propco_agent/
   graph/                                   state, nodes, edges, builder, templates
   service.py  config.py  logging.py
 tests/   unit/ component/ api/ e2e/ (AppTest + browser/) eval/ (live)
-docs/    ARCHITECTURE  DECISIONS  CHALLENGES  DATA_NOTES  ASSUMPTIONS  DEPLOY  EVAL  diagrams/
+docs/    ARCHITECTURE  DECISIONS  CHALLENGES  LIMITATIONS  DATA_NOTES  ASSUMPTIONS  DEPLOY  EVAL  diagrams/
 scripts/ check_licenses.py  smoke_llm.py  eval_report.py
 Dockerfile  docker-compose.yml  Makefile  .github/workflows/ci.yml
 ```
