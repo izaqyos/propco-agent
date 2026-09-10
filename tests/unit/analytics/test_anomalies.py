@@ -43,16 +43,29 @@ class TestRealLedgerRaw:
         assert f.evidence["extra_profit"] == 538220.07
         assert f.evidence["pct_of_rows"] == 44.52
         assert f.severity is Severity.WARN
+        example = f.evidence["example"]
+        assert example["n_occurrences"] == 3
+        assert example["row"]["tenant_name"] == "Tenant 14"
+        assert example["row"]["property_name"] == "Building 180"
+        assert example["row"]["month"] == "2024-M06"
+        assert example["row"]["profit"] == 97708.92
 
     def test_reversals(self, findings: dict[str, Finding]) -> None:
         f = findings["reversal_pairs"]
         assert f.evidence["pairs"] == 449
         assert f.evidence["gross_cancelled"] == 3349539.39
+        example = f.evidence["example"]
+        assert example["key"]["tenant_name"] == "Tenant 14"
+        assert example["positive_profit"] == 97708.92
+        assert example["negative_profit"] == -97708.92
 
     def test_double_mapped_codes(self, findings: dict[str, Finding]) -> None:
         f = findings["double_mapped_codes"]
         assert f.evidence["codes"] == {"4650": ["bank_charges", "financial_expenses"]}
         assert f.evidence["rows"] == 242
+        examples = f.evidence["example_rows"]["4650"]
+        assert examples["bank_charges"]["profit"] == -24.0
+        assert examples["financial_expenses"]["profit"] == -24.0
         assert f.evidence["profit"] == -7255.08
         assert f.severity is Severity.WARN
 
@@ -136,6 +149,64 @@ class TestSynthetic:
         )["reversal_pairs"]
         assert f.evidence["pairs"] == 1
         assert f.evidence["gross_cancelled"] == 100.0
+
+    def test_duplicate_rows_evidence_includes_one_example_row(self) -> None:
+        frame = make_ledger(
+            row(tenant_name="T1", month="2024-M01", profit=50.0),
+            row(tenant_name="T1", month="2024-M01", profit=50.0),
+            row(tenant_name="T2", month="2024-M02", profit=90.0),
+        )
+        f = by_kind(
+            detect_anomalies(frame, LedgerFilter(), policy=DataPolicy.RAW, as_of=AS_OF).findings
+        )["duplicate_rows"]
+        example = f.evidence["example"]
+        assert example["n_occurrences"] == 2
+        assert example["row"]["tenant_name"] == "T1"
+        assert example["row"]["profit"] == 50.0
+
+    def test_reversal_pairs_evidence_includes_one_example_pair(self) -> None:
+        frame = make_ledger(
+            row(tenant_name="T1", profit=100.0), row(tenant_name="T1", profit=-100.0)
+        )
+        f = by_kind(
+            detect_anomalies(frame, LedgerFilter(), policy=DataPolicy.RAW, as_of=AS_OF).findings
+        )["reversal_pairs"]
+        example = f.evidence["example"]
+        assert example["key"]["tenant_name"] == "T1"
+        assert example["positive_profit"] == 100.0
+        assert example["negative_profit"] == -100.0
+
+    def test_duplicate_rows_example_values_are_native_python_types(self) -> None:
+        # msgpack (used by the LangGraph checkpointer) can't serialize numpy scalars; a raw
+        # int32/float64 pulled straight from a DataFrame cell breaks a compound-question run.
+        frame = make_ledger(
+            row(tenant_name="T1", month="2024-M01", profit=50.0),
+            row(tenant_name="T1", month="2024-M01", profit=50.0),
+        )
+        f = by_kind(
+            detect_anomalies(frame, LedgerFilter(), policy=DataPolicy.RAW, as_of=AS_OF).findings
+        )["duplicate_rows"]
+        example = f.evidence["example"]
+        assert type(example["row"]["ledger_code"]) is int
+        assert type(example["row"]["profit"]) is float
+        assert type(example["n_occurrences"]) is int
+
+    def test_double_mapped_codes_evidence_includes_one_example_row_per_category(self) -> None:
+        frame = make_ledger(
+            row(ledger_code=4650, ledger_category="bank_charges", month="2024-M01", profit=-10.0),
+            row(
+                ledger_code=4650,
+                ledger_category="financial_expenses",
+                month="2024-M02",
+                profit=-20.0,
+            ),
+        )
+        f = by_kind(
+            detect_anomalies(frame, LedgerFilter(), policy=DataPolicy.RAW, as_of=AS_OF).findings
+        )["double_mapped_codes"]
+        examples = f.evidence["example_rows"]["4650"]
+        assert examples["bank_charges"]["profit"] == -10.0
+        assert examples["financial_expenses"]["profit"] == -20.0
 
     def test_unallocated_overhead_from_expense_rows(self) -> None:
         frame = make_ledger(row(profit=100.0), expense(profit=-30.0))

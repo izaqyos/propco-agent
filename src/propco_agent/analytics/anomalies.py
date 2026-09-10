@@ -58,6 +58,17 @@ CONCENTRATION_MIN_TENANTS = 4
 Detector = Callable[[pd.DataFrame], "Finding | None"]
 
 
+def _clean(value: Any) -> Any:
+    """``NaN``/``NaT`` -> ``None``; numpy scalars (e.g. ``int32``, ``float64``) -> native Python.
+
+    Evidence must stay msgpack-safe for the LangGraph checkpointer, not just JSON-safe for
+    ``st.json``: a raw numpy scalar pulled straight from a DataFrame cell fails to serialize.
+    """
+    if pd.isna(value):
+        return None
+    return value.item() if hasattr(value, "item") else value
+
+
 def detect_anomalies(
     frame: pd.DataFrame, filt: LedgerFilter, *, policy: DataPolicy, as_of: str
 ) -> AnomalyReport:
@@ -91,6 +102,17 @@ def duplicate_rows(frame: pd.DataFrame) -> Finding | None:
         return None
     pct = round(extra / len(frame) * 100, 2)
     extra_profit = round_cents(frame.loc[mask, "profit"].sum())
+    columns = list(frame.columns)
+    profit_idx = columns.index("profit")
+    counts = frame[frame.duplicated(keep=False)].groupby(columns, dropna=False).size()
+    # most convincing example = the duplicate group with the largest total profit impact
+    impact = (counts - 1) * counts.index.map(lambda key: abs(key[profit_idx]))
+    top = int(impact.to_numpy().argmax())
+    example_key = counts.index[top]
+    example = {
+        "row": {col: _clean(value) for col, value in zip(columns, example_key, strict=True)},
+        "n_occurrences": int(counts[example_key]),
+    }
     return Finding(
         kind="duplicate_rows",
         severity=Severity.WARN if pct > DUPLICATE_WARN_PCT else Severity.INFO,
@@ -99,7 +121,12 @@ def duplicate_rows(frame: pd.DataFrame) -> Finding | None:
             "Without a transaction id a duplicate cannot be told apart from a legitimate repeated "
             f"posting. Summed as posted; removing them would change the total by {extra_profit:,.2f}."
         ),
-        evidence={"extra_rows": extra, "pct_of_rows": pct, "extra_profit": extra_profit},
+        evidence={
+            "extra_rows": extra,
+            "pct_of_rows": pct,
+            "extra_profit": extra_profit,
+            "example": example,
+        },
     )
 
 
@@ -120,6 +147,16 @@ def reversal_pairs(frame: pd.DataFrame) -> Finding | None:
     amounts = joined.index.get_level_values("profit").to_numpy(dtype=float)
     gross = round_cents(float((pairs_per_key.to_numpy() * amounts).sum()))
     pct_rows = round(pairs * 2 / len(frame) * 100, 2)
+    # most convincing example = the pair contributing most to the cancelled gross
+    significance = pairs_per_key.to_numpy() * amounts
+    top = int(significance.argmax())
+    example_index = joined.index[top]
+    example_amount = float(amounts[top])
+    example = {
+        "key": {col: _clean(value) for col, value in zip(key, example_index[:-1], strict=True)},
+        "positive_profit": example_amount,
+        "negative_profit": -example_amount,
+    }
     return Finding(
         kind="reversal_pairs",
         severity=Severity.WARN if pct_rows > REVERSAL_WARN_PCT else Severity.INFO,
@@ -128,7 +165,12 @@ def reversal_pairs(frame: pd.DataFrame) -> Finding | None:
             "Net effect is zero, but gross revenue/expense figures and row counts are inflated. "
             "Typical of corrections and re-bookings."
         ),
-        evidence={"pairs": pairs, "gross_cancelled": gross, "pct_of_rows": pct_rows},
+        evidence={
+            "pairs": pairs,
+            "gross_cancelled": gross,
+            "pct_of_rows": pct_rows,
+            "example": example,
+        },
     )
 
 
@@ -145,6 +187,21 @@ def double_mapped_codes(frame: pd.DataFrame) -> Finding | None:
         )
         for code in codes
     }
+    first_code = codes[0]
+    rows_for_first = rows[rows["ledger_code"] == first_code]
+    example_rows = {
+        str(first_code): {
+            category: {
+                "month": _clean(example_row["month"]),
+                "ledger_description": _clean(example_row["ledger_description"]),
+                "profit": _clean(example_row["profit"]),
+            }
+            for category in mapping[str(first_code)]
+            for example_row in [
+                rows_for_first[rows_for_first["ledger_category"] == category].iloc[0]
+            ]
+        }
+    }
     return Finding(
         kind="double_mapped_codes",
         severity=Severity.WARN,
@@ -157,6 +214,7 @@ def double_mapped_codes(frame: pd.DataFrame) -> Finding | None:
             "codes": mapping,
             "rows": len(rows),
             "profit": round_cents(rows["profit"].sum()),
+            "example_rows": example_rows,
         },
     )
 

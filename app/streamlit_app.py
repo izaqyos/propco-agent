@@ -18,6 +18,7 @@ if str(_ROOT) not in sys.path:  # streamlit runs this file with app/ as the scri
     sys.path.insert(0, str(_ROOT))
 
 from app.components.headline import headline_metric
+from app.components.mermaid import mermaid_html
 from app.components.secrets import bridge_secrets
 from app.components.tables import (
     anomaly_report,
@@ -220,7 +221,10 @@ def _graph_tab(service: AssetManagerService) -> None:
         "Guard → router → extractor → resolver → analyst → synthesizer. Compound questions fan out "
         "with `Send`; clarifications pause the run with `interrupt` and resume on your reply."
     )
-    st.code(service.mermaid(), language="mermaid")
+    source = service.mermaid()
+    st.components.v1.html(mermaid_html(source), height=700, scrolling=True)
+    with st.expander("Mermaid source"):
+        st.code(source, language="mermaid")
 
 
 def main() -> None:
