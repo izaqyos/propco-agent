@@ -19,7 +19,7 @@ sequenceDiagram
     G->>R: ok
     R->>E: intent=pnl, confidence 0.95
     E->>V: periods=[relative this_year], metric=pnl
-    V->>V: as-of 2025-M03 → 2025 YTD (through 2025-03); note recorded
+    V->>V: as-of 2025-M03 → 2025 YTD (through 2025-03), note recorded
     V->>A: LedgerFilter(period=2025 YTD)
     A->>S: PnLResult total €361,810.32, 743 rows, partial_period=true
     S->>S: grounding check: every number ∈ results
@@ -41,7 +41,7 @@ sequenceDiagram
     U->>R: question
     R->>E: period_compare
     E->>V: [this_quarter, same_period_last_year]
-    V->>V: 2025-Q1; base = first period → 2024-Q1
+    V->>V: 2025-Q1, base = first period → 2024-Q1
     V->>A: periods=[2025-Q1, 2024-Q1]
     A->>S: a=€361,810.32 b=€262,309.07 Δ=€99,501.25 (+37.93 %), like_for_like=true
     S-->>U: answer
@@ -64,7 +64,7 @@ sequenceDiagram
     E->>V: properties=["123 Main St"]
     V->>C: Unresolved("no property matching '123 Main St'", suggestions=[Building 120, 140, 160])
     C-->>U: interrupt: "… Did you mean: Building 120, Building 140, Building 160?"
-    Note over C,U: graph paused; thread state kept by the checkpointer
+    Note over C,U: graph paused, thread state kept by the checkpointer
     U->>C: Command(resume="Building 17")
     C->>G: question = "details for 123 Main St — Building 17", clarify_rounds=1
     G->>R: ok
@@ -115,7 +115,7 @@ sequenceDiagram
     U->>R: question
     R->>E: price_compare
     E->>V: properties=[Building 17, Building 120], metric=price
-    V->>V: price ∉ SUPPORTED → metric=pnl; note: "'price' is not in the ledger dataset …"
+    V->>V: price ∉ SUPPORTED → metric=pnl, note: "'price' is not in the ledger dataset …"
     V->>A: properties, metric=pnl, period=all data (note)
     A->>S: ranked=[Building 120, Building 17]
     S-->>U: ranking by P&L contribution + the disclosure that price is not available
@@ -135,13 +135,13 @@ sequenceDiagram
     participant S as synthesizer
     U->>R: question
     R--xR: LLM raises → LLMUnavailableError
-    R->>E: rule_route(question); degraded=true; error recorded
+    R->>E: rule_route(question), degraded=true, error recorded
     E--xE: LLM raises
     E->>V: rule_extract(question)
     V->>A: resolved query (identical to the LLM path)
     A->>S: results (identical numbers)
     S--xS: LLM raises
-    S-->>U: templated answer + Steps; UI shows a "degraded mode" notice
+    S-->>U: templated answer + Steps, UI shows a "degraded mode" notice
 ```
 
 ## 7. Anomaly check
@@ -156,7 +156,7 @@ sequenceDiagram
     participant A as analyst_anomalies
     participant S as synthesizer (LLM)
     U->>R: question
-    R->>V: anomaly_check (extractor finds nothing; resolver defaults period = all data)
+    R->>V: anomaly_check (extractor finds nothing, resolver defaults period = all data)
     V->>A: LedgerFilter()
     A->>A: duplicate_rows, reversal_pairs, double_mapped_codes, monthly_volume_spike, monthly_net_spike, zero_rows, unallocated_overhead, tenant_concentration
     A->>S: AnomalyReport (7 findings on the raw view)
