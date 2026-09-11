@@ -1,5 +1,7 @@
 """HTML wrapper that lets a browser render mermaid source without a Streamlit build step."""
 
+import json
+
 import pytest
 
 from app.components.mermaid import mermaid_html
@@ -7,17 +9,19 @@ from app.components.mermaid import mermaid_html
 pytestmark = pytest.mark.unit
 
 
-def test_embeds_the_source_verbatim_inside_a_mermaid_block() -> None:
+def test_embeds_the_source_as_a_javascript_string() -> None:
     html = mermaid_html("graph TD;\n  A-->B;")
-    assert '<pre class="mermaid">' in html
-    assert "graph TD;" in html
-    assert "A-->B;" in html
+    assert json.dumps("graph TD;\n  A-->B;") in html
 
 
-def test_loads_and_initializes_the_mermaid_library() -> None:
+def test_calls_mermaid_render_explicitly_not_startonload_autoscan() -> None:
+    # startOnLoad's DOM auto-scan measured every node/label as zero-size on the deployed app
+    # (a real <svg> got created, but with viewBox="-8 -8 16 16" — a 16x16 px diagram, invisible
+    # at normal scale). mermaid.render() returns computed SVG directly, side-stepping whatever
+    # timing/measurement race caused that. Verified with an actual browser before this change.
     html = mermaid_html("graph TD;\n  A-->B;")
-    assert "mermaid" in html.lower()
-    assert "initialize" in html
+    assert "mermaid.render(" in html
+    assert "startOnLoad: true" not in html
 
 
 def test_uses_the_classic_script_tag_not_an_es_module() -> None:
@@ -30,8 +34,10 @@ def test_uses_the_classic_script_tag_not_an_es_module() -> None:
     assert 'type="module"' not in html
 
 
-def test_does_not_html_escape_the_source() -> None:
-    # our own generated sources embed HTML in node labels (e.g. "<p>__start__</p>"),
-    # which mermaid needs verbatim to render the label, not as "&lt;p&gt;".
-    html = mermaid_html("graph TD;\n  s([<p>__start__</p>])")
-    assert "<p>__start__</p>" in html
+def test_does_not_break_on_html_embedded_in_node_labels() -> None:
+    # our own generated sources embed HTML in node labels (e.g. "<p>__start__</p>"), which
+    # mermaid needs verbatim to render the label. json.dumps preserves it as-is (it only
+    # escapes quotes/newlines/backslashes, never "<"/">"), so the round-trip is exact.
+    source = "graph TD;\n  s([<p>__start__</p>])"
+    html = mermaid_html(source)
+    assert json.dumps(source) in html
