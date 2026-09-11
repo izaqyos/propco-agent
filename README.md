@@ -7,7 +7,7 @@
 
 A multi-agent assistant for real-estate asset management. Ask it, in English or Dutch, about a property ledger — P&L for a period, this quarter against last year, top tenants, one building's profile, whether anything in the numbers looks off — and it answers with figures it computed, a trace of what it did, and the caveats a careful analyst would add. Built with LangGraph, a Streamlit chat UI, and a deterministic analytics core.
 
-**Live demo:** _deployed URL goes here_ · **Demo video:** _link goes here_
+**Live demo:** [propco-agent-h2qtst8gsfahtsg4ccyyfd.streamlit.app](https://propco-agent-h2qtst8gsfahtsg4ccyyfd.streamlit.app/) · **Demo video:** _link goes here_
 
 ## Contents
 
