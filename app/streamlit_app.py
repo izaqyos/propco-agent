@@ -14,11 +14,11 @@ from typing import Any
 import streamlit as st
 
 _ROOT = Path(__file__).resolve().parents[1]
+_STATIC = Path(__file__).resolve().parent / "static"
 if str(_ROOT) not in sys.path:  # streamlit runs this file with app/ as the script directory
     sys.path.insert(0, str(_ROOT))
 
 from app.components.headline import headline_metric
-from app.components.mermaid import mermaid_html
 from app.components.secrets import bridge_secrets
 from app.components.tables import (
     anomaly_report,
@@ -222,7 +222,7 @@ def _graph_tab(service: AssetManagerService) -> None:
         "with `Send`; clarifications pause the run with `interrupt` and resume on your reply."
     )
     source = service.mermaid()
-    st.components.v1.html(mermaid_html(source), height=700, scrolling=True)
+    st.image(str(_STATIC / "graph-topology.png"), width="stretch")
     with st.expander("Mermaid source"):
         st.code(source, language="mermaid")
 

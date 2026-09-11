@@ -115,4 +115,8 @@ class TestOtherTabs:
         assert "4650" in text
 
     def test_graph_tab_shows_mermaid(self, app: AppTest) -> None:
+        # a live-rendered mermaid diagram inside a Streamlit components iframe hit a real,
+        # confirmed-with-a-browser rendering bug (every node measured at zero size); a
+        # pre-rendered static image sidesteps it entirely and always shows something.
+        assert len(app.image) >= 1
         assert any("graph TD" in c.value for c in app.code)
